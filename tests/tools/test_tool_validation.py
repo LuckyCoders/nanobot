@@ -1,3 +1,5 @@
+import shlex
+import sys
 from typing import Any
 
 from nanobot.agent.tools.base import Tool
@@ -380,9 +382,10 @@ async def test_exec_head_tail_truncation() -> None:
     """Long output should preserve both head and tail."""
     tool = ExecTool()
     # Generate output that exceeds _MAX_OUTPUT (10_000 chars)
-    # Use python to generate output to avoid command line length limits
+    # Use the current interpreter to generate output (CI may not have `python` on PATH)
+    exe = shlex.quote(sys.executable)
     result = await tool.execute(
-        command="python -c \"print('A' * 6000 + '\\n' + 'B' * 6000)\""
+        command=f'{exe} -c "print(\'A\' * 6000 + \'\\n\' + \'B\' * 6000)"'
     )
     assert "chars truncated" in result
     # Head portion should start with As
